@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel target="17">
+      <module name="Tic-Tac-Toe_with_AI.Tic-Tac-Toe_with_AI-task-build-classes-java.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Tic-Tac-Toe_with_AI-task-build-generated-sources-annotationProcessor-java.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Tic-Tac-Toe_with_AI-task-build-generated-sources-headers-java.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Tic-Tac-Toe_with_AI-task-build-reports-tests.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Tic-Tac-Toe_with_AI-task-build-test-results.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Tic-Tac-Toe_with_AI-task-build-tmp.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Tic-Tac-Toe_with_AI-task.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Array-Allocation_memory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Array-Declarations.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Array-Determine_the_output.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Array-Initializing_an_array_of_integers.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Array-The_last_element_of_an_array.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Array-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Constructor-Geometric_cube.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Constructor-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Defining_classes-Inner_boxes.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Defining_classes-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Errors_in_programs-Fix_compile-time_errors.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Errors_in_programs-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Hiding_and_overriding-Overriding_rules.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Hiding_and_overriding-Publications.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Hiding_and_overriding-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Instance_methods-Circle.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Instance_methods-Counter.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Instance_methods-Simulating_a_clock.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Instance_methods-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Iterating_over_arrays-Right_Rotation.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Iterating_over_arrays-The_minimum_value_of_an_array.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Iterating_over_arrays-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Objects-Change_identities.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Objects-Null_or_not.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Objects-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Package-Binary_search.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Package-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Random-Choose_a_correct_invocation.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Random-Find_the_seed.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Random-Gaussian_random_numbers.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Random-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Relational_operators-Check_the_value.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Relational_operators-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Static_members-Project_constants_and_methods.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Static_members-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Static_members-Too_many_cats.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Switch_statement-Direction.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-Switch_statement-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-The_for-loop-Grades.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-The_for-loop-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-The_main_method-Fixing_errors_in_main.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-The_main_method-Print__We_are_robots.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.Topics-The_main_method-Theory.main" target="11" />
+      <module name="Tic-Tac-Toe_with_AI.util.main" target="11" />
+    </bytecodeTargetLevel>
+  </component>
+</project>

@@ -1,0 +1,876 @@
+type: edu
+custom_name: stage4
+files:
+- name: src/tictactoe/Main.java
+  visible: true
+  text: |
+    package tictactoe;
+
+    public class Main {
+        public static void main(String[] args) {
+            // write your code here
+        }
+    }
+  learner_created: false
+- name: test/TicTacToeTest.java
+  visible: false
+  text: |
+    import org.hyperskill.hstest.dynamic.DynamicTest;
+    import org.hyperskill.hstest.stage.StageTest;
+    import org.hyperskill.hstest.testcase.CheckResult;
+    import org.hyperskill.hstest.testing.TestedProgram;
+
+    import java.util.List;
+
+
+    public class TicTacToeTest extends StageTest<String> {
+
+        int[] easyAiMoves = new int[9];
+
+        @DynamicTest(order = 0)
+        CheckResult testBadParameters() {
+
+            TestedProgram program = new TestedProgram();
+            program.start();
+
+            String output = program.execute("start");
+            if (!output.toLowerCase().contains("bad parameters")) {
+                return CheckResult.wrong("After entering start command with wrong parameters you should print 'Bad parameters!' and ask to enter a command again!");
+            }
+
+            output = program.execute("start easy");
+            if (!output.toLowerCase().contains("bad parameters")) {
+                return CheckResult.wrong("After entering start command with wrong parameters you should print 'Bad parameters!' and ask to enter a command again!");
+            }
+
+            program.execute("exit");
+
+            if (!program.isFinished()) {
+                return CheckResult.wrong("After entering 'exit' command you should stop the program!");
+            }
+
+            return CheckResult.correct();
+        }
+
+
+        @DynamicTest(order = 1)
+        CheckResult testGridOutput() {
+
+            TestedProgram program = new TestedProgram();
+
+            program.start();
+
+            String output = program.execute("start user easy");
+
+            Grid printedGrid = Grid.fromOutput(output);
+            Grid emptyGrid = Grid.fromLine("_________");
+
+            if (!printedGrid.equals(emptyGrid)) {
+                return CheckResult.wrong("After starting the program you should print an empty grid!\n" +
+                    "Correct empty grid:\n" + emptyGrid);
+            }
+
+            if (!output.toLowerCase().contains("enter the coordinates:")) {
+                return CheckResult.wrong("After printing an empty grid you should ask to enter cell coordinates!");
+            }
+
+            output = program.execute("2 2");
+
+            Grid gridAfterMove = Grid.fromOutput(output);
+            Grid correctGridAfterMove = Grid.fromLine("____X____");
+
+            if (!gridAfterMove.equals(correctGridAfterMove)) {
+                return CheckResult.wrong("After making the move wrong grid was printed.\n" +
+                    "Your grid:\n" + gridAfterMove + "\n" +
+                    "Correct grid:\n" + correctGridAfterMove);
+            }
+
+            if (!output.toLowerCase().replace("'", "\"").contains("making move level \"easy\"")) {
+                return CheckResult.wrong("After entering a cell coordinates you should print:\nMaking move level \"easy\"");
+            }
+
+            Grid gridAfterAiMove = Grid.fromOutput(output, 2);
+
+            if (gridAfterAiMove.equals(gridAfterMove)) {
+                return CheckResult.wrong("After AI move grid wasn't changed!");
+            }
+
+            Grid gameGrid = gridAfterAiMove;
+
+            while (true) {
+                if (gameGrid.getGameState() != GameState.NOT_FINISHED) {
+                    switch (gameGrid.getGameState()) {
+                        case X_WIN:
+                            if (!output.contains("X wins")) {
+                                return CheckResult.wrong("You should print 'X wins' if X win the game");
+                            }
+                            break;
+                        case O_WIN:
+                            if (!output.contains("O wins")) {
+                                return CheckResult.wrong("You should print 'O wins' if O win the game");
+                            }
+                            break;
+                        case DRAW:
+                            if (!output.contains("Draw")) {
+                                return CheckResult.wrong("You should print 'Draw' if the game ends with draw!");
+                            }
+                            break;
+                    }
+                    break;
+                }
+                Position nextMove = Minimax.getMove(gameGrid, CellState.X);
+
+                Grid tempGrid = gameGrid.copy();
+                tempGrid.setCell(nextMove.x, nextMove.y, CellState.X);
+
+                output = program.execute((nextMove.x + 1) + " " + (nextMove.y + 1));
+
+                gameGrid = Grid.fromOutput(output);
+
+                if (!gameGrid.equals(tempGrid)) {
+                    return CheckResult.wrong("After making move (" + nextMove + ") the game grid is wrong!\n" +
+                        "Your gird\n" + gameGrid + "\n" +
+                        "Correct grid\n" + tempGrid);
+                }
+
+                if (gameGrid.getGameState() != GameState.NOT_FINISHED)
+                    continue;
+
+                gameGrid = Grid.fromOutput(output, 2);
+            }
+
+            return CheckResult.correct();
+        }
+
+        @DynamicTest(repeat = 100, order = 2)
+        CheckResult checkEasyAi() {
+            TestedProgram program = new TestedProgram();
+            program.start();
+
+            program.execute("start user easy");
+
+            String output = program.execute("2 2");
+
+            Grid gridAfterAiMove = Grid.fromOutput(output, 2);
+
+            CellState[][] array = gridAfterAiMove.getGrid();
+
+            for (int i = 0; i < 9; i++) {
+                if (i == 4) {
+                    continue;
+                }
+                if (array[i / 3][i % 3] == CellState.O) {
+                    easyAiMoves[i]++;
+                }
+            }
+
+            return CheckResult.correct();
+        }
+
+        @DynamicTest(order = 3)
+        CheckResult checkRandom() {
+            double averageScore = 0;
+
+            for (int i = 0; i < easyAiMoves.length; i++) {
+                averageScore += (i + 1) * easyAiMoves[i];
+            }
+
+            averageScore /= 8;
+
+            double expectedValue = (double) (1 + 2 + 3 + 4 + 6 + 7 + 8 + 9) * 100 / 8 / 8;
+
+            if (Math.abs(averageScore - expectedValue) > 20) {
+                return CheckResult.wrong("Looks like your Easy level AI doesn't make a random move!");
+            }
+
+            return CheckResult.correct();
+        }
+
+        boolean isEasyNotMovingLikeMedium = false;
+
+        @DynamicTest(repeat = 30, order = 4)
+        CheckResult checkEasyNotMovingLikeMedium() {
+
+            if (isEasyNotMovingLikeMedium) {
+                return CheckResult.correct();
+            }
+
+            TestedProgram program = new TestedProgram();
+            program.start();
+            program.execute("start user easy");
+
+            String output = program.execute("2 2");
+
+            Grid gameGrid = Grid.fromOutput(output, 2);
+
+            CellState[][] cellStates = gameGrid.getGrid();
+
+            if (cellStates[0][0] == CellState.EMPTY && cellStates[2][2] == CellState.EMPTY) {
+                output = program.execute("1 1");
+                gameGrid = Grid.fromOutput(output, 2);
+                if (gameGrid.getGrid()[2][2] == CellState.EMPTY) {
+                    isEasyNotMovingLikeMedium = true;
+                }
+            } else {
+                output = program.execute("1 3");
+                gameGrid = Grid.fromOutput(output, 2);
+                if (gameGrid.getGrid()[2][0] == CellState.EMPTY) {
+                    isEasyNotMovingLikeMedium = true;
+                }
+            }
+
+            program.stop();
+            return CheckResult.correct();
+        }
+
+        @DynamicTest(order = 5)
+        CheckResult checkEasyNotMovingLikeMediumAfter() {
+            if (!isEasyNotMovingLikeMedium) {
+                return CheckResult.wrong("Looks like your Easy level AI doesn't make a random move!");
+            }
+            return CheckResult.correct();
+        }
+
+
+        @DynamicTest(order = 6)
+        CheckResult checkEasyVsEasy() {
+
+            TestedProgram program = new TestedProgram();
+            program.start();
+
+            String output = program.execute("start easy easy");
+
+            List<Grid> gridList = Grid.allGridsFromOutput(output);
+
+            Grid.checkGridSequence(gridList);
+
+            return CheckResult.correct();
+        }
+
+        @DynamicTest(repeat = 10, order = 7)
+        CheckResult checkMediumAi() {
+            TestedProgram program = new TestedProgram();
+            program.start();
+            program.execute("start user medium");
+
+            String output = program.execute("2 2");
+
+            Grid gameGrid = Grid.fromOutput(output, 2);
+
+            CellState[][] cellStates = gameGrid.getGrid();
+
+            if (cellStates[0][0] == CellState.EMPTY && cellStates[2][2] == CellState.EMPTY) {
+                output = program.execute("1 1");
+                gameGrid = Grid.fromOutput(output, 2);
+                if (gameGrid.getGrid()[2][2] == CellState.EMPTY) {
+                    return CheckResult.wrong("Looks like your Medium level AI doesn't make a correct move!");
+                }
+            } else {
+                output = program.execute("1 3");
+                gameGrid = Grid.fromOutput(output, 2);
+                if (gameGrid.getGrid()[2][0] == CellState.EMPTY) {
+                    return CheckResult.wrong("Looks like your Medium level AI doesn't make a correct move!");
+                }
+            }
+            program.stop();
+
+            return CheckResult.correct();
+        }
+
+        @DynamicTest(order = 8, repeat = 5)
+        CheckResult checkMediumVsMedium() {
+
+            TestedProgram program = new TestedProgram();
+            program.start();
+
+            String output = program.execute("start medium medium");
+
+            List<Grid> gridList = Grid.allGridsFromOutput(output);
+
+            Grid.checkGridSequence(gridList);
+
+            return CheckResult.correct();
+        }
+
+        boolean isMediumNotMovingLikeHard = false;
+
+        @DynamicTest(repeat = 30, order = 9)
+        CheckResult checkMediumNotMovingLikeHard() {
+
+            if (isMediumNotMovingLikeHard) {
+                return CheckResult.correct();
+            }
+
+            TestedProgram program = new TestedProgram();
+            program.start();
+
+            program.execute("start user medium");
+
+            String output = program.execute("2 2");
+
+            Grid userMoveGrid = Grid.fromOutput(output, 1);
+            Grid mediumMoveGrid = Grid.fromOutput(output, 2);
+
+            Position mediumMove = Grid.getMove(userMoveGrid, mediumMoveGrid);
+
+            List<Position> minimaxCorrectPositions = Minimax.getAvailablePositions(userMoveGrid, CellState.O);
+
+            if (!minimaxCorrectPositions.contains(mediumMove)) {
+                isMediumNotMovingLikeHard = true;
+            }
+
+            return CheckResult.correct();
+        }
+
+        @DynamicTest(order = 10)
+        CheckResult checkMediumNotMovingLikeHardAfter() {
+            if (!isMediumNotMovingLikeHard) {
+                return CheckResult.wrong("Looks like Medium level AI doesn't make a random move!");
+            }
+            return CheckResult.correct();
+        }
+    }
+  learner_created: false
+- name: src/tictactoe/model/CellType.java
+  visible: true
+  text: |
+    package tictactoe.model;
+
+    public enum CellType {
+        EMPTY,
+        FIRST_PLAYER_OCCUPY,
+        SECOND_PLAYER_OCCUPY
+    }
+  learner_created: true
+- name: src/tictactoe/exception/UserInputException.java
+  visible: true
+  text: |
+    package tictactoe.exception;
+
+    public class UserInputException extends RuntimeException {
+        public UserInputException(String message) {
+            super(message);
+        }
+    }
+  learner_created: true
+- name: src/tictactoe/model/GameStatus.java
+  visible: true
+  text: |
+    package tictactoe.model;
+
+    public enum GameStatus {
+        DRAW,
+        NOT_FINISHED,
+        FIRST_PLAYER_WIN,
+        SECOND_PLAYER_WIN
+    }
+  learner_created: true
+- name: src/tictactoe/exception/InternalModelException.java
+  visible: true
+  text: |
+    package tictactoe.exception;
+
+    public class InternalModelException extends RuntimeException {
+        public InternalModelException(String message) {
+            super(message);
+        }
+    }
+  learner_created: true
+- name: src/tictactoe/exception/InternalLogicException.java
+  visible: true
+  text: |
+    package tictactoe.exception;
+
+    public class InternalLogicException extends RuntimeException {
+        public InternalLogicException(String message) {
+            super(message);
+        }
+    }
+  learner_created: true
+- name: src/tictactoe/model/CellCoordinates.java
+  visible: true
+  text: |
+    package tictactoe.model;
+
+    public class CellCoordinates {
+        private final int col;
+        private final int row;
+
+        public CellCoordinates(int row, int col) {
+            this.col = col;
+            this.row = row;
+        }
+
+        public int getCol() {
+            return col;
+        }
+
+        public int getRow() {
+            return row;
+        }
+
+        @Override
+        public int hashCode() {
+            return super.hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == null || obj.getClass() != this.getClass()) {
+                return false;
+            }
+            CellCoordinates other = (CellCoordinates) obj;
+            return other == this || (other.col == this.col && other.row == this.row);
+        }
+    }
+  learner_created: true
+- name: src/tictactoe/controller/actors/impl/AbstractPlayerBuilder.java
+  visible: true
+  learner_created: true
+- name: src/tictactoe/controller/actors/impl/bot/ConsoleMediumBotBuilder.java
+  visible: true
+  learner_created: true
+- name: src/tictactoe/controller/actors/impl/bot/EasyBot.java
+  visible: true
+  text: |
+    package tictactoe.controller.actors.impl;
+
+    import tictactoe.controller.actors.TicTacToePlayer;
+    import tictactoe.exception.InternalLogicException;
+    import tictactoe.service.TicTacToeGame;
+
+    import java.util.Random;
+
+    public class EasyBotTicTacToePlayer implements TicTacToePlayer {
+        private final Random random = new Random();
+        private TicTacToeGame game;
+
+        @Override
+        public void makeMove() {
+            if (game == null) {
+                throw new InternalLogicException(GAME_MISSING_ERROR_STRING);
+            }
+            var availableTurns = game.getAvailableTurns();
+            var botTurn = availableTurns.get(random.nextInt(availableTurns.size()));
+            game.makeTurn(botTurn);
+        }
+
+        @Override
+        public void setGame(TicTacToeGame game) {
+            if (this.game != null) {
+                throw new InternalLogicException(GAME_SET_ERROR_STRING);
+            }
+            this.game = game;
+        }
+    }
+  learner_created: true
+- name: src/tictactoe/controller/actors/Player.java
+  visible: true
+  text: |
+    package tictactoe.controller.actors;
+
+    import tictactoe.service.TicTacToeGame;
+
+    public interface TicTacToePlayer {
+        String GAME_SET_ERROR_STRING = "Game already set and can not be changed for Player";
+        String GAME_MISSING_ERROR_STRING = "Player should have a game before making turns";
+
+        void setGame(TicTacToeGame game);
+        void makeMove();
+    }
+  learner_created: true
+- name: src/tictactoe/controller/actors/PlayerBuilder.java
+  visible: true
+  learner_created: true
+- name: src/tictactoe/controller/actors/impl/user/ConsoleUserBuilder.java
+  visible: true
+  learner_created: true
+- name: src/tictactoe/controller/actors/impl/bot/ConsoleEasyBotBuilder.java
+  visible: true
+  learner_created: true
+- name: src/tictactoe/controller/actors/impl/bot/MediumBot.java
+  visible: true
+  learner_created: true
+- name: src/tictactoe/controller/Controller.java
+  visible: true
+  text: |
+    package tictactoe.controller;
+
+    import tictactoe.controller.actors.TicTacToePlayer;
+    import tictactoe.service.TicTacToeGame;
+
+    public interface TicTacToeController {
+        String GAME_SET_ERROR_STRING = "Game already set and can not be changed for Controller";
+        String SET_PLAYER_ERROR_STRING = "Controller should have game before setting players";
+        String START_ERROR_STRING = "Controller should have game and both players before start";
+
+        TicTacToeController setGame(TicTacToeGame game);
+
+        TicTacToeController setFirstPlayer(TicTacToePlayer player);
+
+        TicTacToeController setSecondPlayer(TicTacToePlayer player);
+
+        void start();
+    }
+  learner_created: true
+- name: src/tictactoe/service/Game.java
+  visible: true
+  text: |
+    package tictactoe.service;
+
+    import tictactoe.model.CellCoordinates;
+    import tictactoe.model.CellType;
+    import tictactoe.model.GameStatus;
+
+    import java.util.List;
+
+    public interface TicTacToeGame {
+        void makeTurn(int row, int col) throws RuntimeException;
+
+        default void makeTurn(CellCoordinates coordinates) {
+            makeTurn(coordinates.getRow(), coordinates.getCol());
+        }
+
+        GameStatus getGameStatus();
+
+        CellType[][] getBoard();
+
+        int getBoardHeight();
+
+        int getBoardWidth();
+
+        List<CellCoordinates> getAvailableTurns();
+
+        void reset();
+    }
+  learner_created: true
+- name: src/tictactoe/service/impl/TextGame.java
+  visible: true
+  text: |
+    package tictactoe.service.impl;
+
+    import tictactoe.service.TicTacToeGame;
+    import tictactoe.exception.UserInputException;
+    import tictactoe.model.CellCoordinates;
+    import tictactoe.model.CellType;
+    import tictactoe.model.GameStatus;
+
+    import java.util.ArrayList;
+    import java.util.Collections;
+    import java.util.List;
+
+    public class TextTicTacToeGame implements TicTacToeGame {
+        static final int BOARD_SIDE_SIZE = 3;
+
+        static final String ILLEGAL_CHARACTER_ERROR_STRING = "Illegal character %c in initial state";
+
+        private final CellType[][] board;
+        private final List<CellCoordinates> availableTurns = new ArrayList<>();
+        private CellType nextCellType;
+        private GameStatus gameStatus;
+
+        public TextTicTacToeGame() {
+            board = new CellType[BOARD_SIDE_SIZE][BOARD_SIDE_SIZE];
+            initializeClear();
+        }
+
+
+        public TextTicTacToeGame(String initialStateString, char emptyChar, char firstPlayerChar, char secondPlayerChar) {
+            int quantityFirst = 0;
+            int quantitySecond = 0;
+
+            board = new CellType[BOARD_SIDE_SIZE][BOARD_SIDE_SIZE];
+            for (int i = 0; i < BOARD_SIDE_SIZE; i++) {
+                for (int j = 0; j < BOARD_SIDE_SIZE; j++) {
+                    char initialStateStringCharacter = initialStateString.charAt(i * BOARD_SIDE_SIZE + j);
+                    CellType initialStateStringCellType;
+                    if (initialStateStringCharacter == firstPlayerChar) {
+                        initialStateStringCellType = CellType.FIRST_PLAYER_OCCUPY;
+                        quantityFirst++;
+                    } else if (initialStateStringCharacter == secondPlayerChar) {
+                        initialStateStringCellType = CellType.SECOND_PLAYER_OCCUPY;
+                        quantitySecond++;
+                    } else {
+                        throw new UserInputException(String.format(ILLEGAL_CHARACTER_ERROR_STRING, initialStateStringCharacter));
+                    }
+                    if (initialStateStringCharacter == emptyChar) {
+                        addTurn(i + 1, j + 1);
+                        board[i][j] = CellType.EMPTY;
+                    } else {
+                        board[i][j] = initialStateStringCellType;
+                    }
+                }
+            }
+            calculateGameStatus();
+            nextCellType = quantityFirst > quantitySecond ? CellType.SECOND_PLAYER_OCCUPY : CellType.FIRST_PLAYER_OCCUPY;
+        }
+
+        @Override
+        public void makeTurn(int row, int col) throws RuntimeException {
+            if ((BOARD_SIDE_SIZE < row || row < 1) || (BOARD_SIDE_SIZE < col || col < 1)) {
+                throw new UserInputException("Coordinates should be from 1 to 3!");
+            }
+            if (board[row - 1][col - 1] != CellType.EMPTY) {
+                throw new UserInputException("This cell is occupied! Choose another one!");
+            }
+            board[row - 1][col - 1] = nextCellType;
+            nextCellType = getNextCellType();
+            availableTurns.removeIf((coordinates -> coordinates.getRow() == row && coordinates.getCol() == col));
+            if (gameStatus == GameStatus.NOT_FINISHED) {
+                calculateGameStatus();
+            }
+        }
+
+        @Override
+        public GameStatus getGameStatus() {
+            return gameStatus;
+        }
+
+        @Override
+        public CellType[][] getBoard() {
+            // defensive copy
+            return board.clone();
+        }
+
+        @Override
+        public int getBoardHeight() {
+            return BOARD_SIDE_SIZE;
+        }
+
+        @Override
+        public int getBoardWidth() {
+            return BOARD_SIDE_SIZE;
+        }
+
+        @Override
+        public List<CellCoordinates> getAvailableTurns() {
+            return Collections.unmodifiableList(availableTurns);
+        }
+
+        @Override
+        public void reset() {
+            initializeClear();
+        }
+
+        private CellType getNextCellType() {
+            return nextCellType == CellType.FIRST_PLAYER_OCCUPY ? CellType.SECOND_PLAYER_OCCUPY : CellType.FIRST_PLAYER_OCCUPY;
+        }
+
+        private void addTurn(int row, int col) {
+            availableTurns.add(new CellCoordinates(row, col));
+        }
+
+        private void calculateGameStatus() {
+            gameStatus = GameStatus.DRAW;
+
+            // check for draw
+            for (int i = 0; i < BOARD_SIDE_SIZE && gameStatus == GameStatus.DRAW; i++) {
+                for (int j = 0; j < BOARD_SIDE_SIZE; j++) {
+                    if (board[i][j] == CellType.EMPTY) {
+                        gameStatus = GameStatus.NOT_FINISHED;
+                        break;
+                    }
+                }
+            }
+
+            // check vertical lines
+            for (int i = 0; i < BOARD_SIDE_SIZE; i++) {
+                if (board[i][0] != CellType.EMPTY) {
+                    CellType probableWinnerCellType = board[i][0];
+                    for (int j = 1; j < BOARD_SIDE_SIZE; j++) {
+                        if (probableWinnerCellType != board[i][j]) {
+                            probableWinnerCellType = CellType.EMPTY;
+                            break;
+                        }
+                    }
+
+                    switch (probableWinnerCellType) {
+                        case FIRST_PLAYER_OCCUPY -> {
+                            gameStatus = GameStatus.FIRST_PLAYER_WIN;
+                            return;
+                        }
+                        case SECOND_PLAYER_OCCUPY -> {
+                            gameStatus = GameStatus.SECOND_PLAYER_WIN;
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // check horizontal lines
+            for (int j = 0; j < BOARD_SIDE_SIZE; j++) {
+                if (board[0][j] != CellType.EMPTY) {
+                    CellType probableWinnerCellType = board[0][j];
+                    for (int i = 1; i < BOARD_SIDE_SIZE; i++) {
+                        if (probableWinnerCellType != board[i][j]) {
+                            probableWinnerCellType = CellType.EMPTY;
+                            break;
+                        }
+                    }
+                    switch (probableWinnerCellType) {
+                        case FIRST_PLAYER_OCCUPY -> {
+                            gameStatus = GameStatus.FIRST_PLAYER_WIN;
+                            return;
+                        }
+                        case SECOND_PLAYER_OCCUPY -> {
+                            gameStatus = GameStatus.SECOND_PLAYER_WIN;
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // check left diagonal
+            if (board[0][0] != CellType.EMPTY) {
+                CellType probableWinnerCellType = board[0][0];
+                for (int i = 1; i < BOARD_SIDE_SIZE; i++) {
+                    if (board[i][i] != probableWinnerCellType) {
+                        probableWinnerCellType = CellType.EMPTY;
+                        break;
+                    }
+                }
+                switch (probableWinnerCellType) {
+                    case FIRST_PLAYER_OCCUPY -> {
+                        gameStatus = GameStatus.FIRST_PLAYER_WIN;
+                        return;
+                    }
+                    case SECOND_PLAYER_OCCUPY -> {
+                        gameStatus = GameStatus.SECOND_PLAYER_WIN;
+                        return;
+                    }
+                }
+            }
+
+            // check right diagonal
+            if (board[0][BOARD_SIDE_SIZE - 1] != CellType.EMPTY) {
+                CellType probableWinnerCellType = board[0][BOARD_SIDE_SIZE - 1];
+                for (int i = 1; i < BOARD_SIDE_SIZE; i++) {
+                    if (board[i][BOARD_SIDE_SIZE - 1 - i] != probableWinnerCellType) {
+                        probableWinnerCellType = CellType.EMPTY;
+                        break;
+                    }
+                }
+                switch (probableWinnerCellType) {
+                    case FIRST_PLAYER_OCCUPY -> gameStatus = GameStatus.FIRST_PLAYER_WIN;
+                    case SECOND_PLAYER_OCCUPY -> gameStatus = GameStatus.SECOND_PLAYER_WIN;
+                }
+            }
+        }
+
+        /**
+         * Defines common logic for default {@link #TextTicTacToeGame() constructor} and  {@link #reset() reset} method
+         */
+        private void initializeClear() {
+            nextCellType = CellType.FIRST_PLAYER_OCCUPY;
+            gameStatus = GameStatus.NOT_FINISHED;
+
+            for (int i = 0; i < BOARD_SIDE_SIZE; i++) {
+                for (int j = 0; j < BOARD_SIDE_SIZE; j++) {
+                    board[i][j] = CellType.EMPTY;
+                    availableTurns.add(new CellCoordinates(i + 1, j + 1));
+                }
+            }
+        }
+    }
+  learner_created: true
+- name: src/tictactoe/controller/actors/impl/bot/AbstractBot.java
+  visible: true
+  learner_created: true
+- name: src/tictactoe/controller/actors/impl/AbstractPlayer.java
+  visible: true
+  learner_created: true
+- name: src/tictactoe/controller/ControllerBuilder.java
+  visible: true
+  learner_created: true
+- name: src/tictactoe/view/View.java
+  visible: true
+  text: |
+    package tictactoe.view;
+
+    public interface TicTacToeView {
+        void showBoard();
+        void showGameStatus();
+    }
+  learner_created: true
+- name: src/tictactoe/view/impl/ConsoleView.java
+  visible: true
+  text: |
+    package tictactoe.view.impl;
+
+    import tictactoe.service.TicTacToeGame;
+    import tictactoe.exception.InternalModelException;
+    import tictactoe.model.CellType;
+    import tictactoe.model.GameStatus;
+    import tictactoe.view.TicTacToeView;
+
+    import java.util.Map;
+
+    public class ConsoleTicTacToeView implements TicTacToeView {
+        private static final String WINNER_FORMAT_STRING = "%c wins";
+        private static final String UNKNOWN_GAME_STATUS_ERROR_STRING = "Unknown game status %s";
+
+        private final TicTacToeGame game;
+        private final char emptyChar;
+        private final char firstPlayerChar;
+        private final char secondPlayerChar;
+        private final Map<GameStatus, String> gameStatusStringMap;
+
+        public ConsoleTicTacToeView(TicTacToeGame game, char emptyChar, char firstPlayerChar, char secondPlayerChar) {
+            this.game = game;
+            this.emptyChar = emptyChar;
+            this.firstPlayerChar = firstPlayerChar;
+            this.secondPlayerChar = secondPlayerChar;
+            this.gameStatusStringMap = Map.of(
+                    GameStatus.DRAW, "Draw",
+                    GameStatus.NOT_FINISHED, "Game not finished",
+                    GameStatus.FIRST_PLAYER_WIN, String.format(WINNER_FORMAT_STRING, firstPlayerChar),
+                    GameStatus.SECOND_PLAYER_WIN, String.format(WINNER_FORMAT_STRING, secondPlayerChar)
+            );
+        }
+
+        @Override
+        public void showBoard() {
+            CellType[][] board = game.getBoard();
+
+            System.out.println("---".repeat(game.getBoardWidth()));
+            for (int i = 0; i < game.getBoardHeight(); i++) {
+                StringBuilder boardLineBuilder = new StringBuilder();
+                boardLineBuilder.append("| ");
+                for (int j = 0; j < game.getBoardWidth(); j++) {
+                    boardLineBuilder.append(cellTypeToChar(board[i][j])).append(' ');
+                }
+                System.out.println(boardLineBuilder.append('|'));
+            }
+            System.out.println("---".repeat(game.getBoardWidth()));
+        }
+
+        @Override
+        public void showGameStatus() {
+            GameStatus status = game.getGameStatus();
+            String gameStatusString = gameStatusStringMap.get(status);
+
+            if (gameStatusString == null) {
+                throw new InternalModelException(String.format(UNKNOWN_GAME_STATUS_ERROR_STRING, status));
+            } else {
+                System.out.println(gameStatusStringMap.get(game.getGameStatus()));
+            }
+        }
+
+        private char cellTypeToChar(CellType cellType) {
+            return switch (cellType) {
+                case EMPTY -> emptyChar;
+                case FIRST_PLAYER_OCCUPY -> firstPlayerChar;
+                case SECOND_PLAYER_OCCUPY -> secondPlayerChar;
+            };
+        }
+    }
+  learner_created: true
+- name: src/tictactoe/controller/impl/ControllerBuilderImpl.java
+  visible: true
+  learner_created: true
+feedback_link: https://hyperskill.org/learn/step/7437#comment
+status: Solved
+feedback:
+  message: Congratulations!
+  time: Sun, 19 Jun 2022 20:32:05 UTC
+record: 4
